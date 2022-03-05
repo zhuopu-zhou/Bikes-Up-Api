@@ -80,10 +80,12 @@ exports.loginUser = (req, res) => {
         return user;
       });
       const token = jwt.sign(users[0], "doNotShareYourSecret");
+      const decode = jwt.verify(token, "doNotShareYourSecret");
       res.send({
         success: true,
         message: "Login successful",
         token,
+        id:decode.id
       });
     })
     .catch((err) =>
@@ -105,7 +107,7 @@ exports.getUsers = (req, res) => {
   }
   // TODO: Protect this route with JWT
   const decode = jwt.verify(req.headers.authorization, "doNotShareYourSecret");
-  console.log("NEW REQUEST BY:", decode.email);
+  console.log("NEW REQUEST BY:", decode.id);
   if (decode.userRole > 5) {
     return res.status(401).send({
       success: false,
@@ -119,7 +121,7 @@ exports.getUsers = (req, res) => {
       const users = snapshot.docs.map((doc) => {
         let user = doc.data();
         user.id = doc.id;
-        user.password = undefined;
+        //user.password = undefined;
         return user;
       });
       res.send({
