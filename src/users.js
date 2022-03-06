@@ -36,7 +36,7 @@ exports.createUser = (req, res) => {
         success: true,
         message: "Account created",
         token, // add this to token later
-        id: user.id,//test
+        id: user.id, //test
       });
     })
     .catch((err) =>
@@ -85,7 +85,7 @@ exports.loginUser = (req, res) => {
         success: true,
         message: "Login successful",
         token,
-        id:decode.id
+        id: decode.id,
       });
     })
     .catch((err) =>
@@ -128,6 +128,47 @@ exports.getUsers = (req, res) => {
         success: true,
         message: "Users returned",
         users,
+      });
+    })
+    .catch((err) =>
+      res.status(500).send({
+        success: false,
+        message: err.message,
+        error: err,
+      })
+    );
+};
+
+exports.getMessages = (req, res) => {
+  //first make sure the user sent authorization token
+  if (!req.headers.authorization) {
+    return res.status(403).send({
+      success: false,
+      message: "No authorization token found",
+    });
+  }
+  // TODO: Protect this route with JWT
+  const decode = jwt.verify(req.headers.authorization, "doNotShareYourSecret");
+  console.log("NEW REQUEST BY:", decode.id);
+  if (decode.userRole > 5) {
+    return res.status(401).send({
+      success: false,
+      message: "Not authorized",
+    });
+  }
+  const db = connectDb();
+  db.collection("messages")
+    .get()
+    .then((snapshot) => {
+      const messages = snapshot.docs.map((doc) => {
+        let message = doc.data();
+        message.id = doc.id;
+        return message;
+      });
+      res.send({
+        success: true,
+        message: "Messages returned",
+        messages,
       });
     })
     .catch((err) =>
