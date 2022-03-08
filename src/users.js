@@ -98,22 +98,22 @@ exports.loginUser = (req, res) => {
 };
 
 exports.getUsers = (req, res) => {
-  //first make sure the user sent authorization token
-  if (!req.headers.authorization) {
-    return res.status(403).send({
-      success: false,
-      message: "No authorization token found",
-    });
-  }
-  // TODO: Protect this route with JWT
-  const decode = jwt.verify(req.headers.authorization, "doNotShareYourSecret");
-  console.log("NEW REQUEST BY:", decode.id);
-  if (decode.userRole > 5) {
-    return res.status(401).send({
-      success: false,
-      message: "Not authorized",
-    });
-  }
+  // //first make sure the user sent authorization token
+  // if (!req.headers.authorization) {
+  //   return res.status(403).send({
+  //     success: false,
+  //     message: "No authorization token found",
+  //   });
+  // }
+  // // TODO: Protect this route with JWT
+  // const decode = jwt.verify(req.headers.authorization, "doNotShareYourSecret");
+  // console.log("NEW REQUEST BY:", decode.id);
+  // if (decode.userRole > 5) {
+  //   return res.status(401).send({
+  //     success: false,
+  //     message: "Not authorized",
+  //   });
+  // }
   const db = connectDb();
   db.collection("users")
     .get()
@@ -140,24 +140,26 @@ exports.getUsers = (req, res) => {
 };
 
 exports.getMessages = (req, res) => {
-  //first make sure the user sent authorization token
-  if (!req.headers.authorization) {
-    return res.status(403).send({
-      success: false,
-      message: "No authorization token found",
-    });
-  }
-  // TODO: Protect this route with JWT
-  const decode = jwt.verify(req.headers.authorization, "doNotShareYourSecret");
-  console.log("NEW REQUEST BY:", decode.id);
-  if (decode.userRole > 5) {
-    return res.status(401).send({
-      success: false,
-      message: "Not authorized",
-    });
-  }
+  // //first make sure the user sent authorization token
+  // if (!req.headers.authorization) {
+  //   return res.status(403).send({
+  //     success: false,
+  //     message: "No authorization token found",
+  //   });
+  // }
+  // // TODO: Protect this route with JWT
+  // const decode = jwt.verify(req.headers.authorization, "doNotShareYourSecret");
+  // console.log("NEW REQUEST BY:", decode.id);
+  // if (decode.userRole > 5) {
+  //   return res.status(401).send({
+  //     success: false,
+  //     message: "Not authorized",
+  //   });
+  //}
   const db = connectDb();
   db.collection("messages")
+    // .where("uidSend","==",req.query.uidSend)
+    // .where("uidReceive","==",req.query.uidReceive)
     .get()
     .then((snapshot) => {
       const messages = snapshot.docs.map((doc) => {
@@ -169,7 +171,47 @@ exports.getMessages = (req, res) => {
         success: true,
         message: "Messages returned",
         messages,
+        
       });
+    })
+    .catch((err) =>
+      res.status(500).send({
+        success: false,
+        message: err.message,
+        error: err,
+      })
+    );
+};
+
+exports.sendMessage = (req, res) => {
+  // //first make sure the user sent authorization token
+  // if (!req.headers.authorization) {
+  //   return res.status(403).send({
+  //     success: false,
+  //     message: "No authorization token found",
+  //   });
+  // }
+  // // TODO: Protect this route with JWT
+  // const decode = jwt.verify(req.headers.authorization, "doNotShareYourSecret");
+  // console.log("NEW REQUEST BY:", decode.id);
+  // if (decode.userRole > 5) {
+  //   return res.status(401).send({
+  //     success: false,
+  //     message: "Not authorized",
+  //   });
+  // }
+
+  const newMessage = {
+    text: req.body.text,
+    uidSend: req.body.uidSend,
+    uidReceive: req.body.uidReceive,
+    //createdAt: FirebaseFirestore.FieldValue.serverTimestamp(),
+  };
+  const db = connectDb();
+  db.collection("messages")
+    .add(newMessage)
+    .then((doc) => {
+      res.status(201).send(doc.id);
     })
     .catch((err) =>
       res.status(500).send({

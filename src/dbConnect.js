@@ -10,3 +10,4 @@ exports.connectDb = () => {
   }
   return getFirestore()
 }
+
